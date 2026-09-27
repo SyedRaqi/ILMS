@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Circulation Options | ILMS{% endblock %}
+
+{% block content %}
+<div class="page-frame admin-page">
+  <header class="topbar inner-topbar">
+    <nav class="navbar container">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-label="ILMS logo"><span class="brand-book"></span></div>
+        <div class="brand-text"><span class="brand-name">ILMS</span></div>
+      </div>
+      <div class="nav-links">
+        <a href="/">Home</a><a href="/books">Books</a><a href="{{ url_for('admin_dashboard') }}">Admin Control</a><a href="{{ url_for('admin_options') }}">Circulation options</a><a href="/reports">Reports</a>
+      </div>
+      <a href="/logout" class="login-pill"><span class="user-icon">◔</span> Sign out</a>
+    </nav>
+  </header>
+
+  <main class="content-section admin-content container section-space">
+    <section class="section-header">
+      <div><p class="eyebrow">Administrator workspace</p><h1>Circulation options</h1><p class="subhead">Return an active issue or cancel a reservation.</p></div>
+      <a class="ghost-btn" href="{{ url_for('admin_dashboard') }}">Back to admin</a>
+    </section>
+
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="auth-notice">{{ message }}</div>
+    {% endfor %}
+
+    <section class="admin-section">
+      <div class="section-header admin-section-heading"><div><p class="eyebrow">Issued books</p><h2>Active issues.</h2></div><span class="section-index">{{ issues|length }} ACTIVE</span></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Member</th><th>Book</th><th>Issued</th><th>Due</th><th>Action</th></tr></thead><tbody>
+        {% for issue in issues %}
+          <tr><td>{{ issue.full_name }}<small>{{ issue.student_id }}</small></td><td>{{ issue.title }}<small>{{ issue.author }}</small></td><td>{{ issue.issued_at }}</td><td>{{ issue.due_date }}</td><td><form method="post" action="{{ url_for('remove_issued_book', issue_id=issue.id) }}" onsubmit="return confirm('Confirm that the member returned this book?')"><button class="circulation-action" type="submit">Mark returned</button></form></td></tr>
+        {% else %}
+          <tr><td colspan="5">No active issues.</td></tr>
+        {% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-header admin-section-heading"><div><p class="eyebrow">Reservations</p><h2>Active queue.</h2></div><span class="section-index">{{ reservations|length }} ACTIVE</span></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Member</th><th>Book</th><th>Requested</th><th>Status</th><th>Action</th></tr></thead><tbody>
+        {% for reservation in reservations %}
+          <tr><td>{{ reservation.full_name }}<small>{{ reservation.student_id }}</small></td><td>{{ reservation.title }}<small>{{ reservation.author }}</small></td><td>{{ reservation.created_at }}</td><td>{{ reservation.status }}</td><td><form method="post" action="{{ url_for('remove_reservation', reservation_id=reservation.id) }}" onsubmit="return confirm('Cancel this reservation?')"><button class="circulation-action" type="submit">Remove reservation</button></form></td></tr>
+        {% else %}
+          <tr><td colspan="5">No active reservations.</td></tr>
+        {% endfor %}
+      </tbody></table></div>
+    </section>
+  </main>
+</div>
+{% endblock %}

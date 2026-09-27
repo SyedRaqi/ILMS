@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} | ILMS{% endblock %}
+
+{% block content %}
+<div class="page-frame">
+  <header class="topbar inner-topbar">
+    <nav class="navbar container">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-label="ILMS logo">
+          <span class="brand-book"></span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">ILMS</span>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/books">Books</a>
+        {% if user %}
+          {% if user.role == 'admin' %}<a href="/admin">Admin Control</a>{% elif user.role == 'librarian' %}<a href="/librarian">Librarian Desk</a>{% else %}<a href="/dashboard">Dashboard</a>{% endif %}
+          {% if user.role == 'admin' %}<a href="/reports">Reports</a>{% endif %}
+        {% endif %}
+      </div>
+
+      <a href="{{ '/logout' if user else '/login' }}" class="login-pill">
+        <span class="user-icon">◔</span>
+        {{ 'Sign out' if user else 'Login' }}
+      </a>
+    </nav>
+  </header>
+
+  <main class="content-section container section-space">
+    <div class="book-detail-layout">
+      <div class="book-detail-cover">
+        <img src="{{ book.cover }}" alt="{{ book.title }}" />
+      </div>
+
+      <div class="book-detail-info">
+        <p class="eyebrow">{{ book.category }}</p>
+        <h1>{{ book.title }}</h1>
+        <h3>by {{ book.author }}</h3>
+        <div class="detail-meta">
+          <span>ISBN: {{ book.isbn }}</span>
+          <span>Publisher: Modern Press</span>
+          <span>Availability: {{ book.status }}</span>
+          <span>Copies: {{ book.copies }}</span>
+        </div>
+        <p class="book-description">A compelling collection of ideas and practical insight designed for learners, professionals, and curious minds. This title explores the intersection of quality, discipline, and deep understanding in a way that connects theory with everyday practice.</p>
+
+        <div class="book-action-row">
+          {% if user and user.role == 'member' %}
+          <form action="/issue/{{ book.id }}" method="post"><button class="primary-btn" type="submit">Issue Book</button></form>
+          <form action="/reserve/{{ book.id }}" method="post"><button class="ghost-btn" type="submit">Reserve Book</button></form>
+          {% elif user and user.role in ['admin', 'librarian'] %}
+          <a class="primary-btn" href="{{ '/admin' if user.role == 'admin' else '/librarian' }}">Open Staff Desk</a>
+          <span class="staff-action-note">Staff circulation is managed from the staff desk.</span>
+          {% else %}
+          <a class="primary-btn" href="/login?next=/book/{{ book.id }}">Login to Issue</a>
+          <a class="ghost-btn" href="/login?next=/book/{{ book.id }}">Login to Reserve</a>
+          {% endif %}
+          <button class="ghost-btn" type="button">Add to Wishlist</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="related-books">
+      <div class="section-header small-header">
+        <div>
+          <p class="eyebrow">More in this collection</p>
+          <h2>Related Books</h2>
+        </div>
+      </div>
+
+      <div class="book-grid compact-grid">
+        {% for item in related %}
+        <article class="book-card small-book-card">
+          <div class="book-cover-wrap">
+            <img src="{{ item.cover }}" alt="{{ item.title }}" />
+          </div>
+          <div class="book-card-body">
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.author }}</p>
+            <a href="/book/{{ item.id }}" class="ghost-btn">Open</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Books | ILMS{% endblock %}
+
+{% block content %}
+<div class="page-frame">
+  <header class="topbar inner-topbar">
+    <nav class="navbar container">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-label="ILMS logo">
+          <span class="brand-book"></span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">ILMS</span>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/books">Books</a>
+        {% if user %}
+          {% if user.role == 'admin' %}<a href="/admin">Admin Control</a>{% elif user.role == 'librarian' %}<a href="/librarian">Librarian Desk</a>{% else %}<a href="/dashboard">Dashboard</a>{% endif %}
+          {% if user.role == 'admin' %}<a href="/reports">Reports</a>{% endif %}
+        {% endif %}
+      </div>
+
+      <a href="{{ '/logout' if user else '/login' }}" class="login-pill">
+        <span class="user-icon">◔</span>
+        {{ 'Sign out' if user else 'Login' }}
+      </a>
+    </nav>
+  </header>
+
+  <main class="content-section container section-space">
+    <section class="section-header">
+      <div>
+        <p class="eyebrow">Library Collection</p>
+        <h1>Explore the Collection</h1>
+      </div>
+      <div class="catalog-tools">
+        <input type="search" placeholder="Search books, authors, ISBN..." />
+      </div>
+    </section>
+
+    <div class="catalog-filters">
+      <button class="filter-chip active">All</button>
+      <button class="filter-chip">Available</button>
+      <button class="filter-chip">Issued</button>
+      <button class="filter-chip">Reserved</button>
+      <button class="filter-chip">Fiction</button>
+      <button class="filter-chip">Technology</button>
+      <button class="filter-chip">Science</button>
+      <button class="filter-chip">Literature</button>
+    </div>
+
+    <div class="book-grid">
+      {% for book in books %}
+      <article class="book-card">
+        <div class="book-cover-wrap">
+          <img src="{{ book.cover }}" alt="{{ book.title }} cover" />
+          <span class="availability-pill {{ book.status.lower() }}">{{ book.status }}</span>
+        </div>
+        <div class="book-card-body">
+          <div class="book-card-top">
+            <div>
+              <h3>{{ book.title }}</h3>
+              <p>{{ book.author }}</p>
+            </div>
+            <span class="rating">★ {{ book.rating }}</span>
+          </div>
+          <div class="meta-row">
+            <span>{{ book.category }}</span>
+            <span>{{ book.copies }} copies</span>
+          </div>
+          <a href="/book/{{ book.id }}" class="ghost-btn">View Details</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </main>
+</div>
+{% endblock %}

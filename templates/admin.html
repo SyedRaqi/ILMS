@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Control Center | ILMS{% endblock %}
+
+{% block content %}
+<div class="page-frame admin-page">
+  <header class="topbar inner-topbar">
+    <nav class="navbar container">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-label="ILMS logo"><span class="brand-book"></span></div>
+        <div class="brand-text"><span class="brand-name">ILMS</span></div>
+      </div>
+      <div class="nav-links">
+        <a href="/">Home</a><a href="/books">Books</a><a href="{% if admin.role == 'admin' %}/admin{% else %}/librarian{% endif %}">{% if admin.role == 'admin' %}Admin Control{% else %}Librarian Desk{% endif %}</a><a href="#member-directory">Members</a><a href="#circulation-ledger">Issued books</a>{% if admin.role == 'admin' %}<a href="{{ url_for('admin_options') }}">Circulation options</a><a href="/reports">Reports</a>{% endif %}
+      </div>
+      <a href="/logout" class="login-pill"><span class="user-icon">◔</span> Sign out</a>
+    </nav>
+  </header>
+
+  <main class="content-section admin-content container section-space">
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="auth-notice" role="status">{{ message }}</div>
+    {% endfor %}
+    <section class="admin-masthead">
+      <div class="admin-masthead-copy">
+        <p class="eyebrow">{{ 'Administrator' if admin.role == 'admin' else 'Librarian' }} workspace · 2026</p>
+        <h1>Library control<br><em>center.</em></h1>
+        <p class="admin-intro">A quiet command post for the collection, its readers, and every story in motion.</p>
+      </div>
+      <div class="admin-masthead-seal" aria-hidden="true"><span>ILMS</span><small>EST. 2026</small></div>
+      <div class="admin-status"><span class="status-dot"></span><span>System operational</span><strong>{{ admin.role|capitalize }}</strong></div>
+    </section>
+
+    <div class="command-line"><span>OVERVIEW</span><i></i><span>LIVE LIBRARY INTELLIGENCE</span></div>
+
+    <div class="stats-grid admin-stats">
+      <div class="stat-card"><div class="stat-label">Members</div><div class="stat-value">{{ members|length }}</div><div class="stat-trend">Active accounts</div></div>
+      <div class="stat-card"><div class="stat-label">Books in collection</div><div class="stat-value">{{ books|length }}</div><div class="stat-trend">Catalog titles</div></div>
+      <div class="stat-card"><div class="stat-label">Issue records</div><div class="stat-value">{{ issues|length }}</div><div class="stat-trend">All circulation</div></div>
+      <div class="stat-card"><div class="stat-label">Calculated fines</div><div class="stat-value">INR {{ total_fines }}</div><div class="stat-trend">INR 5 per overdue day</div></div>
+    </div>
+
+    <section class="admin-section collection-command">
+      <div class="section-header admin-section-heading"><div><p class="eyebrow">Collection operations</p><h2>Place a new story<br>on the shelves.</h2></div><span class="section-index">01 / 03</span></div>
+      <div class="collection-command-grid">
+        <div class="collection-visual"><div class="visual-glow"></div><div class="book-spine"><b>NEW</b><span>ACQUISITION</span><small>ILMS · 026</small></div><p>Every addition changes the character of the collection.</p></div>
+        <form class="admin-form" method="post" action="/admin/books/add">
+          <label><span>Title</span><input name="title" placeholder="The title of the work" required></label>
+          <label><span>Author</span><input name="author" placeholder="Author name" required></label>
+          <label><span>Category</span><input name="category" placeholder="Literature, science..." required></label>
+          <label><span>ISBN</span><input name="isbn" placeholder="978-..." required></label>
+          <label><span>Copies</span><input name="copies" type="number" min="1" value="1" required></label>
+          <label><span>Cover URL</span><input name="cover" type="url" placeholder="https://..."></label>
+          <label class="admin-form-wide"><span>Description</span><textarea name="description" rows="3" placeholder="A short note about this title"></textarea></label>
+          <button class="primary-btn" type="submit"><span>+</span> Add to collection</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="admin-section" id="member-directory">
+      <div class="section-header admin-section-heading"><div><p class="eyebrow">Member directory</p><h2>The reading room.</h2></div><span class="section-index">02 / 03</span></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Student ID</th><th>Email</th><th>Phone</th><th>Joined</th></tr></thead><tbody>
+        {% for member in members %}<tr><td>{{ member.full_name }}</td><td>{{ member.student_id }}</td><td>{{ member.email }}</td><td>{{ member.phone or '—' }}</td><td>{{ member.created_at }}</td></tr>{% else %}<tr><td colspan="5">No members registered yet.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="admin-section" id="circulation-ledger">
+      <div class="section-header admin-section-heading"><div><p class="eyebrow">Issued books</p><h2>Stories in motion.</h2></div><span class="section-index">03 / 03</span></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Member</th><th>Book</th><th>Issued</th><th>Due</th><th>Fine</th><th>Action</th></tr></thead><tbody>
+        {% for issue in active_issues %}<tr><td>{{ issue.full_name }}<small>{{ issue.student_id }} · {{ issue.email }}</small></td><td>{{ issue.title }}<small>{{ issue.author }}</small></td><td>{{ issue.issued_at }}</td><td>{{ issue.due_date }}</td><td class="fine-value">INR {{ issue.fine }}</td><td><form method="post" action="{{ url_for('remove_issued_book', issue_id=issue.id) }}" onsubmit="return confirm('Confirm that the member returned this book?')"><input type="hidden" name="return_to" value="admin"><button class="circulation-action" type="submit">Mark returned</button></form></td></tr>{% else %}<tr><td colspan="6">No active issued books.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-header admin-section-heading"><div><p class="eyebrow">Reservation queue</p><h2>Readers waiting.</h2></div><span class="section-index">04 / 04</span></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Member</th><th>Book</th><th>Requested</th><th>Status</th></tr></thead><tbody>
+        {% for reservation in reservations %}<tr><td>{{ reservation.full_name }}<small>{{ reservation.student_id }}</small></td><td>{{ reservation.title }}</td><td>{{ reservation.created_at }}</td><td>{{ reservation.status }}</td></tr>{% else %}<tr><td colspan="4">No reservation queue yet.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+  </main>
+</div>
+{% endblock %}

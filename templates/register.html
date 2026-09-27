@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | ILMS{% endblock %}
+
+{% block content %}
+<div class="auth-page-shell">
+  <div class="auth-backdrop"></div>
+  <div class="auth-content container">
+    <div class="auth-card register-card">
+      <div class="auth-hero">
+        <div class="brand-wrap center-brand">
+          <div class="brand-mark" aria-label="ILMS logo">
+            <span class="brand-book"></span>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">ILMS</span>
+          </div>
+        </div>
+        <h1>Join the digital library</h1>
+        <p>Build your reading profile and access library resources, reservations, and alerts.</p>
+      </div>
+
+      <form class="auth-form-panel" action="/register" method="post">
+        <h2>Register</h2>
+        <div class="two-col-fields">
+          <label>
+            <span>Full Name</span>
+            <input type="text" name="full_name" value="Arjun Nair" required />
+          </label>
+          <label>
+            <span>USN / Student ID</span>
+            <input type="text" name="student_id" value="1MS23CS101" required />
+          </label>
+        </div>
+
+        <div class="two-col-fields">
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" value="arjun@college.edu" required />
+          </label>
+          <label>
+            <span>Phone</span>
+            <input type="tel" name="phone" value="+91 98765 43210" />
+          </label>
+        </div>
+
+        <div class="two-col-fields">
+          <label>
+            <span>Password</span>
+            <input type="password" name="password" value="password123" required />
+          </label>
+          <label>
+            <span>Confirm Password</span>
+            <input type="password" name="confirm_password" value="password123" required />
+          </label>
+        </div>
+
+        <button type="submit" class="primary-btn wide-btn">Create Account</button>
+        <p class="auth-switch">Already have an account? <a href="/login">Login</a></p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

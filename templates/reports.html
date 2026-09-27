@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports | ILMS{% endblock %}
+
+{% block content %}
+<div class="page-frame">
+  <header class="topbar inner-topbar">
+    <nav class="navbar container">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-label="ILMS logo">
+          <span class="brand-book"></span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">ILMS</span>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/books">Books</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+      </div>
+
+      <a href="/login" class="login-pill">
+        <span class="user-icon">◔</span>
+        Login
+      </a>
+    </nav>
+  </header>
+
+  <main class="content-section container section-space">
+    <section class="section-header">
+      <div>
+        <p class="eyebrow">Insights</p>
+        <h1>Reports &amp; Analytics</h1>
+      </div>
+      <div class="report-actions">
+        <a class="ghost-btn" href="/reports/export/members">Export Members</a>
+        <a class="ghost-btn" href="/reports/export/circulation">Export Circulation</a>
+        <a class="primary-btn" href="/reports/export/books">Export Books CSV</a>
+      </div>
+    </section>
+
+    <div class="report-grid">
+      <div class="report-box">
+        <h3>Book Report</h3>
+        <p>Total books: {{ report_data.total_books }}</p>
+        <p>Available: {{ report_data.available_books }}</p>
+        <p>Issued: {{ report_data.issued_books }}</p>
+        <p>Active reservations: {{ report_data.reservations }}</p>
+      </div>
+      <div class="report-box">
+        <h3>Member Report</h3>
+        <p>Total members: {{ report_data.active_members }}</p>
+        <p>Registered accounts: {{ report_data.active_members }}</p>
+        <p>Roles are administrator-controlled</p>
+      </div>
+      <div class="report-box">
+        <h3>Circulation Report</h3>
+        <p>Active issues: {{ report_data.issued_books }}</p>
+        <p>Returns: {{ report_data.returned_books }}</p>
+        <p>Overdue books: {{ report_data.overdue_books }}</p>
+      </div>
+      <div class="report-box">
+        <h3>Fine Report</h3>
+        <p>Policy: INR 5 per overdue day</p>
+        <p>Fine records are calculated from due dates</p>
+        <p>Payment collection: administrator managed</p>
+      </div>
+    </div>
+
+    <section class="report-chart panel-card">
+      <div class="section-header"><div><p class="eyebrow">Collection composition</p><h2>Books by category</h2></div></div>
+      {% set category_total = report_data.categories|sum(attribute='total') or 1 %}
+      <div class="category-bars">
+        {% for category in report_data.categories %}
+        <div class="category-bar"><div class="category-bar-label"><span>{{ category.category }}</span><strong>{{ category.total }}</strong></div><div class="bar-track"><span style="width: {{ (category.total / category_total * 100)|round(1) }}%"></span></div></div>
+        {% else %}<p>No category data yet.</p>{% endfor %}
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

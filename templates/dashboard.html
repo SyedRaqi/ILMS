@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | ILMS{% endblock %}
+
+{% block content %}
+<div class="page-frame dashboard-page">
+  <header class="topbar inner-topbar">
+    <nav class="navbar container">
+      <div class="brand-wrap">
+        <div class="brand-mark" aria-label="ILMS logo">
+          <span class="brand-book"></span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">ILMS</span>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/books">Books</a>
+        <a href="/dashboard">Dashboard</a>
+        {% if user.role == 'admin' %}<a href="/reports">Reports</a>{% endif %}
+        {% if user.role == 'admin' %}<a href="/admin">Admin Control</a>{% elif user.role == 'librarian' %}<a href="/librarian">Librarian Desk</a>{% endif %}
+      </div>
+
+      <a href="/login" class="login-pill">
+        <span class="user-icon">◔</span>
+        Dashboard
+      </a>
+    </nav>
+  </header>
+
+  <main class="content-section container section-space">
+    <section class="dashboard-header">
+      <div>
+        <p class="eyebrow">Library Overview</p>
+        <h1>Welcome back, {{ user.full_name.split(' ')[0] }}</h1>
+      </div>
+      <p class="subhead">Here's what's happening with your library account.</p>
+    </section>
+
+    {% for reservation in reservations if reservation.status == 'Notified' %}
+      <div class="auth-notice" role="status">The book you reserved, {{ reservation.title }}, is available now.</div>
+    {% endfor %}
+
+    <div class="stats-grid">
+      {% for stat in stats %}
+      <div class="stat-card">
+        <div class="stat-label">{{ stat.label }}</div>
+        <div class="stat-value">{{ stat.value }}</div>
+        <div class="stat-trend">{{ stat.trend }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="dashboard-panels">
+      <div class="panel-card dashboard-panel">
+        <h3>My Books</h3>
+        <ul class="mini-list">
+          {% for book in my_books %}<li><span>{{ book.title }}</span><em>Due {{ book.due_date[:10] if book.due_date else 'soon' }}</em></li>{% else %}<li><span>No active books</span><em>Ready to explore</em></li>{% endfor %}
+        </ul>
+      </div>
+
+      <div class="panel-card dashboard-panel">
+        <h3>Reservations</h3>
+        <ul class="mini-list">
+          {% for reservation in reservations %}<li><span>{{ reservation.title }}</span><em>{{ 'Available now' if reservation.status == 'Notified' else reservation.status }}</em></li>{% else %}<li><span>No active reservations</span><em>Browse collection</em></li>{% endfor %}
+        </ul>
+      </div>
+
+      <div class="panel-card dashboard-panel">
+        <h3>My Fines</h3>
+        <ul class="mini-list">
+          <li><span>Current balance</span><em>{{ stats[2].value }}</em></li>
+          <li><span>Policy</span><em>INR 5 / overdue day</em></li>
+        </ul>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
