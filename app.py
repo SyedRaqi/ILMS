@@ -8,25 +8,48 @@ from flask import Flask, flash, make_response, redirect, render_template, reques
 from werkzeug.security import check_password_hash, generate_password_hash
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'library.db')
+# On Render, set DATABASE_PATH=/var/data/library.db and attach a persistent
+# disk mounted at /var/data. Locally, keep the database beside app.py.
+DB_PATH = os.environ.get('DATABASE_PATH', os.path.join(BASE_DIR, 'library.db'))
+DB_DIR = os.path.dirname(os.path.abspath(DB_PATH))
+os.makedirs(DB_DIR, exist_ok=True)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ilms-dev-secret-key'
+# Set SECRET_KEY in Render's Environment settings to a long, random value.
+# The fallback is only intended for local development.
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ilms-dev-secret-key')
+
+# Comma-separated list of allowed browser origins, e.g. your GitHub Pages URL.
+# Local Vite origins are retained for development.
+ALLOWED_ORIGINS = {
+    origin.strip().rstrip('/')
+    for origin in os.environ.get('FRONTEND_ORIGIN', '').split(',')
+    if origin.strip()
+}
+ALLOWED_ORIGINS.update({
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+})
 
 
 @app.after_request
 def add_api_headers(response):
     if request.path.startswith('/api/'):
-        origin = request.headers.get('Origin')
-        if origin in ('http://localhost:5173', 'http://127.0.0.1:5173'):
+        origin = request.headers.get('Origin', '').rstrip('/')
+        if origin in ALLOWED_ORIGINS:
             response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Vary'] = 'Origin'
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA foreign_keys = ON')
+    conn.execute('PRAGMA busy_timeout = 30000')
     return conn
 
 
@@ -213,9 +236,10 @@ def init_db():
             """
         )
 
+        # Seed demo books only for a brand-new/empty database. Never delete
+        # existing books during startup or redeployment.
         book_count = conn.execute('SELECT COUNT(*) FROM books').fetchone()[0]
-        if book_count < 100:
-            conn.execute('DELETE FROM books')
+        if book_count == 0:
             conn.executemany(
                 """
                 INSERT INTO books (title, author, category, isbn, status, rating, copies, cover, description)
@@ -225,19 +249,24 @@ def init_db():
             )
             conn.commit()
 
+        # Create staff accounts only when explicitly configured. This avoids
+        # deploying publicly known default passwords. Set these environment
+        # variables in Render if you want startup to create the accounts.
+        admin_password = os.environ.get('ILMS_ADMIN_PASSWORD')
         admin = conn.execute('SELECT id FROM users WHERE email = ?', ('admin@ilms.edu',)).fetchone()
-        if not admin:
+        if not admin and admin_password:
             conn.execute(
                 'INSERT INTO users (full_name, student_id, email, phone, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)',
-                ('Library Administrator', 'ADMIN001', 'admin@ilms.edu', '', generate_password_hash('admin123'), 'admin'),
+                ('Library Administrator', 'ADMIN001', 'admin@ilms.edu', '', generate_password_hash(admin_password), 'admin'),
             )
             conn.commit()
 
+        librarian_password = os.environ.get('ILMS_LIBRARIAN_PASSWORD')
         librarian = conn.execute('SELECT id FROM users WHERE email = ?', ('librarian@ilms.edu',)).fetchone()
-        if not librarian:
+        if not librarian and librarian_password:
             conn.execute(
                 'INSERT INTO users (full_name, student_id, email, phone, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)',
-                ('Library Librarian', 'LIB001', 'librarian@ilms.edu', '', generate_password_hash('librarian123'), 'librarian'),
+                ('Library Librarian', 'LIB001', 'librarian@ilms.edu', '', generate_password_hash(librarian_password), 'librarian'),
             )
             conn.commit()
 
@@ -1062,4 +1091,4 @@ def export_report(report_type):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=os.environ.get('FLASK_DEBUG', '').lower() == 'true', host='0.0.0.0', port=int(os.environ.get('PORT', '5000')))
