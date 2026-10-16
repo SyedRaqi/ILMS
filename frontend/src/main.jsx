@@ -15,6 +15,7 @@ const features = [
 ]
 
 const API = 'https://ilms-backend-je7m.onrender.com'
+const LOGO_URL = `${import.meta.env.BASE_URL}ilms-logo.svg`
 
 function LibraryDesk({ onExit }) {
   const [section, setSection] = useState('overview')
@@ -39,7 +40,7 @@ function LibraryDesk({ onExit }) {
 
   const nav = [['overview', 'Overview', Library], ['books', 'Add books', Plus], ['members', 'Members', UsersRound], ['circulation', 'Circulation', BookOpen], ['reservations', 'Reservations', CalendarDays], ['reports', 'Reports', FileText]]
   return <main className="desk-shell">
-    <aside className="desk-sidebar"><a className="brand" href="#top" onClick={onExit}><img className="brand-logo" src="/ilms-logo.svg" alt="ILMS logo" /><strong>ILMS</strong></a><p className="desk-kicker">Library desk</p><nav>{nav.map(([key, label, Icon]) => <button className={section === key ? 'selected' : ''} onClick={() => setSection(key)} key={key}><Icon size={17} />{label}</button>)}</nav><button className="desk-exit" onClick={onExit}>← Return to home</button></aside>
+    <aside className="desk-sidebar"><a className="brand" href="#top" onClick={onExit}><img className="brand-logo" src={LOGO_URL} alt="ILMS logo" /><strong>ILMS</strong></a><p className="desk-kicker">Library desk</p><nav>{nav.map(([key, label, Icon]) => <button className={section === key ? 'selected' : ''} onClick={() => setSection(key)} key={key}><Icon size={17} />{label}</button>)}</nav><button className="desk-exit" onClick={onExit}>← Return to home</button></aside>
     <section className="desk-main"><header className="desk-header"><div><p className="eyebrow">Staff workspace</p><h1>{nav.find(([key]) => key === section)?.[1]}</h1><p>Quiet tools for keeping the collection in motion.</p></div><a className="outline-button" href={`${API}/login`}>Staff login</a></header>{message && <div className="desk-message">{message}</div>}
       {section === 'overview' && <div className="desk-grid"><div className="desk-stat"><small>Members</small><strong>{data.stats.members || 0}</strong></div><div className="desk-stat"><small>Books</small><strong>{data.stats.books || 0}</strong></div><div className="desk-stat"><small>Active issues</small><strong>{data.stats.issued || 0}</strong></div><div className="desk-stat"><small>Calculated fines</small><strong>INR {data.stats.fines || 0}</strong></div><div className="desk-panel desk-wide"><p className="eyebrow">Recent activity</p><h2>Circulation ledger</h2>{data.issues.slice(0, 6).map((issue) => <div className="desk-row" key={issue.id}><span>{issue.full_name}</span><span>{issue.title}</span><b>{issue.status}</b></div>)}{!data.issues.length && <p className="empty-state">No circulation activity yet.</p>}</div></div>}
       {section === 'books' && <div className="desk-panel"><p className="eyebrow">Collection operations</p><h2>Add a book to the shelves.</h2><form className="desk-form" onSubmit={addBook}>{[['title', 'Title'], ['author', 'Author'], ['category', 'Category'], ['isbn', 'ISBN'], ['copies', 'Copies'], ['cover', 'Cover URL']].map(([key, label]) => <label key={key}><span>{label}</span><input name={key} value={form[key]} type={key === 'copies' ? 'number' : key === 'cover' ? 'url' : 'text'} min={key === 'copies' ? 1 : undefined} onChange={(event) => setForm({ ...form, [key]: event.target.value })} required={['title', 'author', 'category', 'isbn', 'copies'].includes(key)} /></label>)}<label className="desk-form-wide"><span>Description</span><textarea name="description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} rows="4" /></label><button className="gold-button" type="submit"><Plus size={17} /> Add to collection</button></form></div>}
@@ -71,7 +72,7 @@ function App() {
 
   useEffect(() => {
     const query = searchTerm ? `&q=${encodeURIComponent(searchTerm)}` : ''
-    fetch(`${API}/api/books?limit=4${query}`, { credentials: 'include' })
+    fetch(`${API}/api/books?limit=4${query}`)
       .then((response) => response.ok ? response.json() : [])
       .then((payload) => setBooks(payload.books || []))
       .catch(() => setBooks([]))
@@ -84,7 +85,7 @@ function App() {
       <div className="library-backdrop" />
       <div className="cinematic-vignette" />
       <nav className="nav-shell">
-        <a className="brand" href="#top"><img className="brand-logo" src="/ilms-logo.svg" alt="ILMS logo" /><strong>ILMS</strong></a>
+        <a className="brand" href="#top"><img className="brand-logo" src={LOGO_URL} alt="ILMS logo" /><strong>ILMS</strong></a>
         <div className="nav-links"><a className="active" href="#top">Home</a><a href="#about">About</a><a href="#books">Books</a><a href="#services">Services</a><a href="#contact">Contact</a></div>
         <label className="top-search"><Search size={15} /><input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search books..." aria-label="Search books" /></label>
         <button className="login-button" onClick={() => setPage('desk')}><CircleUserRound size={17} /> Library Desk</button>
@@ -103,7 +104,7 @@ function App() {
       </section>
 
       <section className="feature-strip" id="services">{features.map(([label, Icon]) => <a href="#books" className="feature" key={label}><span><Icon size={21} /></span><small>{label}</small></a>)}</section>
-      <section className="collection-preview" id="books"><div><img className="search-page-logo" src="/ilms-logo.svg" alt="ILMS knowledge crest" /><p className="eyebrow">Open catalog</p><h2>Knowledge, connected.</h2><p className="collection-note">Browse titles and details without signing in. Log in when you want to issue or reserve a book.</p></div><div className="book-samples">{books.length ? books.map((book) => <article key={book.id}><strong>{book.title}</strong><small>{book.author} · {book.category}</small><div className="book-actions"><a href={`${API}/book/${book.id}`}>View details</a><a href={`${API}/login?next=/book/${book.id}`}>Issue</a><a href={`${API}/login?next=/book/${book.id}`}>Reserve</a></div></article>) : <div className="book-gate"><BookOpen size={28} /><strong>Catalog unavailable</strong><span>Books could not be loaded. Please refresh and try again.</span></div>}</div></section>
+      <section className="collection-preview" id="books"><div><img className="search-page-logo" src={LOGO_URL} alt="ILMS knowledge crest" /><p className="eyebrow">Open catalog</p><h2>Knowledge, connected.</h2><p className="collection-note">Browse titles and details without signing in. Log in when you want to issue or reserve a book.</p></div><div className="book-samples">{books.length ? books.map((book) => <article key={book.id}><strong>{book.title}</strong><small>{book.author} · {book.category}</small><div className="book-actions"><a href={`${API}/book/${book.id}`}>View details</a><a href={`${API}/login?next=/book/${book.id}`}>Issue</a><a href={`${API}/login?next=/book/${book.id}`}>Reserve</a></div></article>) : <div className="book-gate"><BookOpen size={28} /><strong>Catalog unavailable</strong><span>Books could not be loaded. Please refresh and try again.</span></div>}</div></section>
       <footer id="contact">© 2026 ILMS · Connecting readers with knowledge.<span><a href="mailto:syedraqi309@gmail.com">syedraqi309@gmail.com</a> · <a href="tel:7022129961">7022129961</a> · <a href="sms:7022129961">Message</a></span></footer>
     </main>
   )
