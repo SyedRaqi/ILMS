@@ -14,7 +14,7 @@ const features = [
   ['User Management', UsersRound],
 ]
 
-const API = 'http://127.0.0.1:5000'
+const API = 'https://ilms-backend-je7m.onrender.com'
 
 function LibraryDesk({ onExit }) {
   const [section, setSection] = useState('overview')
@@ -97,7 +97,7 @@ function App() {
           <h1>INTEGRATED LIBRARY<br />MANAGEMENT SYSTEM</h1>
           <p className="tagline">READ <span>|</span> LEARN <span>|</span> EXPLORE <span>|</span> GROW</p>
           <p className="hero-description">A smarter way to discover, manage and experience knowledge.</p>
-          <div className="hero-actions"><a className="gold-button" href="#books">Explore Library <ArrowRight size={17} /></a><a className="outline-button" href="http://127.0.0.1:5000/login">Login to Library</a></div>
+          <div className="hero-actions"><a className="gold-button" href="#books">Explore Library <ArrowRight size={17} /></a><a className="outline-button" href="https://ilms-backend-je7m.onrender.com">Login to Library</a></div>
         </motion.div>
         <div className="book-stage" aria-hidden="true"><div className="floating-feature-icons"><span><BookOpen /></span><span><UsersRound /></span><span><BarChart3 /></span><span><Search /></span></div><div className="open-book"><div className="page page-left" /><div className="page page-right" /><div className="book-light" /><div className="book-cover" /></div></div>
       </section>
