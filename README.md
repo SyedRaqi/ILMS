@@ -146,4 +146,4 @@ ILMS/
 
 </details>
 
-<img src="assets/ilms-footer.svg" alt="ILMS. Built by Syed Raqi. Released under the Unlicense." width="100%"/>
+<img src="ilms-footer.svg" alt="ILMS. Built by Syed Raqi. Released under the Unlicense." width="100%"/>
